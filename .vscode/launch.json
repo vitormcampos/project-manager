@@ -1,0 +1,36 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API (.NET)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/ProjectHub.Api/ProjectHub.Api.csproj",
+            "launchSettingsProfile": "http",
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Web (Blazor WebAssembly)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/ProjectHub.Web/ProjectHub.Web.csproj",
+            "launchSettingsProfile": "http",
+            "preLaunchTask": "build"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "API + Web",
+            "configurations": [
+                "API (.NET)",
+                "Web (Blazor WebAssembly)"
+            ],
+            "stopAll": true
+        }
+    ]
+}
