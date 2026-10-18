@@ -1,0 +1,30 @@
+@page "/projects"
+
+<PageTitle>Projetos | ProjectHub</PageTitle>
+
+<MudStack Spacing="4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h4">Projetos</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default">
+                Acompanhe o progresso e os prazos dos projetos da equipe.
+            </MudText>
+        </MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudChip T="string" Variant="Variant.Outlined">@ProjectCatalog.All.Count projetos</MudChip>
+            <MudButton Href="/projects/new" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add">
+                Novo projeto
+            </MudButton>
+        </MudStack>
+    </MudStack>
+
+    <MudGrid Spacing="4">
+        @foreach (var project in ProjectCatalog.All)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <ProjectCard Project="project" />
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>

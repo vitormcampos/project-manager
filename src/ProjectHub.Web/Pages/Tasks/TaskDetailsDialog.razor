@@ -1,0 +1,123 @@
+@using System.Globalization
+
+<MudDialog>
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="task-dialog-title">
+            <MudText Typo="Typo.h6">Editar tarefa</MudText>
+            <MudIconButton Icon="@(_fullScreen ? Icons.Material.Filled.FullscreenExit : Icons.Material.Filled.Fullscreen)"
+                           Color="Color.Default" OnClick="ToggleFullScreen"
+                           aria-label="@(_fullScreen ? "Sair da tela cheia" : "Abrir em tela cheia")" />
+        </MudStack>
+    </TitleContent>
+    <DialogContent>
+        <div class="task-dialog-content">
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_title" Label="Nome da tarefa" Variant="Variant.Outlined"
+                              Immediate="true" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="_project" Label="Projeto" Variant="Variant.Outlined" Required="true">
+                    @foreach (var project in ProjectCatalog.All)
+                    {
+                        <MudSelectItem T="string" Value="@project.Name">@project.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="int" @bind-Value="_priority" Label="Prioridade" Variant="Variant.Outlined">
+                    <MudSelectItem T="int" Value="1">Urgente</MudSelectItem>
+                    <MudSelectItem T="int" Value="2">Alta</MudSelectItem>
+                    <MudSelectItem T="int" Value="3">Média</MudSelectItem>
+                    <MudSelectItem T="int" Value="4">Baixa</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_dueDate" Label="Prazo (opcional)" Variant="Variant.Outlined"
+                               DateFormat="dd/MM/yyyy" Culture="@PortugueseCulture" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_tagsText" Label="Tags (separadas por vírgula)"
+                              Variant="Variant.Outlined" Immediate="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_description" Label="Descrição em Markdown (opcional)"
+                              HelperText="Aceita Markdown. Ex.: # Título, **negrito**, listas e código."
+                              Variant="Variant.Outlined" Lines="12" AutoGrow="false"
+                              Class="task-markdown-field" />
+            </MudItem>
+        </MudGrid>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" OnClick="Cancel">Cancelar</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save"
+                   Disabled="@(!CanSave)">
+            Salvar
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public TaskItem Task { get; set; } = default!;
+
+    private string _title = "";
+    private string _project = "";
+    private DateTime? _dueDate;
+    private int _priority;
+    private string _tagsText = "";
+    private string _description = "";
+    private bool _fullScreen;
+    private bool CanSave => !string.IsNullOrWhiteSpace(_title) && !string.IsNullOrWhiteSpace(_project);
+
+    private static readonly CultureInfo PortugueseCulture = CultureInfo.GetCultureInfo("pt-BR");
+
+    protected override void OnInitialized()
+    {
+        _title = Task.Title;
+        _project = Task.Project;
+        _dueDate = Task.DueDate;
+        _priority = Task.Priority;
+        _tagsText = string.Join(", ", Task.Tags);
+        _description = Task.Description;
+    }
+
+    private async Task ToggleFullScreen()
+    {
+        _fullScreen = !_fullScreen;
+        await MudDialog.SetOptionsAsync(new DialogOptions
+        {
+            FullScreen = _fullScreen,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large,
+            BackdropClick = false,
+        });
+    }
+
+    private void Save()
+    {
+        var tags = _tagsText
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(tag => tag.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        TaskCatalog.Update(Task with
+        {
+            Title = _title.Trim(),
+            Project = _project,
+            DueDate = _dueDate,
+            Priority = _priority,
+            Tags = tags,
+            Description = _description,
+        });
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,25 @@
+@page "/{*Path}"
+
+<PageTitle>Página não encontrada | ProjectHub</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="py-16">
+    <MudPaper Class="pa-8" Elevation="1">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Warning" />
+            <MudText Typo="Typo.h1" Color="Color.Primary">404</MudText>
+            <MudText Typo="Typo.h5" Align="Align.Center">Página não encontrada</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default" Align="Align.Center">
+                O endereço acessado não corresponde a uma página disponível.
+            </MudText>
+            <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Home">
+                Voltar para a visão geral
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string? Path { get; set; }
+}

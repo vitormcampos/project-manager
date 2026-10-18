@@ -1,0 +1,36 @@
+<MudPaper Class="pa-4" Elevation="1">
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudAvatar Color="@Project.Color" Variant="Variant.Filled" Size="Size.Large">
+                @if (!string.IsNullOrWhiteSpace(Project.ImageDataUrl))
+                {
+                    <img src="@Project.ImageDataUrl" alt="" class="project-avatar-image" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Project.Icon" />
+                }
+            </MudAvatar>
+            <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="Mais opções" />
+        </MudStack>
+        <MudText Typo="Typo.subtitle1">@Project.Name</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Default">@Project.Description</MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.caption" Color="Color.Default">Progresso</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Default">@Project.Progress%</MudText>
+        </MudStack>
+        <MudProgressLinear Value="@Project.Progress" Color="Color.Primary" Rounded="true" />
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@Project.Status</MudChip>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" />
+                <MudText Typo="Typo.caption" Color="Color.Default">@Project.Due</MudText>
+            </MudStack>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public ProjectItem Project { get; set; } = default!;
+}

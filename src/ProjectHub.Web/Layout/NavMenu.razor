@@ -1,0 +1,83 @@
+@implements IDisposable
+
+<MudStack Class="pa-4 mud-height-full" Spacing="2">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-5">
+        <MudText Typo="Typo.h6">
+            <b>project</b> hub
+        </MudText>
+    </MudStack>
+
+    <MudText Typo="Typo.overline">WORKSPACE</MudText>
+    <MudNavMenu>
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.GridView">
+            Visão geral
+        </MudNavLink>
+        <MudNavLink Href="projects" Icon="@Icons.Material.Filled.FolderOpen">
+            Projetos (@ProjectCatalog.All.Count)
+        </MudNavLink>
+        <MudNavLink Href="tasks" Icon="@Icons.Material.Filled.CheckBox">
+            Minhas tarefas (@TaskCatalog.All.Count(task => !task.IsCompleted))
+        </MudNavLink>
+        <MudNavLink Href="team" Icon="@Icons.Material.Filled.People">
+            Equipe
+        </MudNavLink>
+    </MudNavMenu>
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mt-2">
+        <MudText Typo="Typo.overline">SEUS PROJETOS</MudText>
+        <MudIconButton Href="/projects/new" Icon="@Icons.Material.Filled.Add" Size="Size.Small" Color="Color.Default"
+                       aria-label="Adicionar projeto" />
+    </MudStack>
+    <MudStack Spacing="2">
+        @foreach (var project in ProjectCatalog.All)
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                @if (!string.IsNullOrWhiteSpace(project.ImageDataUrl))
+                {
+                    <img src="@project.ImageDataUrl" alt="" class="project-list-image" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Circle" Size="Size.Small" Color="@project.Color" />
+                }
+                <MudText Typo="Typo.body2">@project.Name</MudText>
+            </MudStack>
+        }
+    </MudStack>
+
+    <MudDivider />
+
+    <MudSpacer />
+    <MudNavMenu>
+        <MudNavLink Href="settings" Icon="@Icons.Material.Filled.Settings">
+            Configurações
+        </MudNavLink>
+    </MudNavMenu>
+
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="pt-2">
+        <MudAvatar Color="Color.Primary" Size="Size.Medium">VC</MudAvatar>
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.body2"><b>Vitor Campos</b></MudText>
+            <MudText Typo="Typo.caption" Color="Color.Default">Administrador</MudText>
+        </MudStack>
+        <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" Size="Size.Small" Color="Color.Default"
+                       aria-label="Opções do perfil" />
+    </MudStack>
+</MudStack>
+@code {
+    protected override void OnInitialized()
+    {
+        ProjectCatalog.Changed += OnProjectsChanged;
+        TaskCatalog.Changed += OnTasksChanged;
+    }
+
+    private void OnProjectsChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnTasksChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        ProjectCatalog.Changed -= OnProjectsChanged;
+        TaskCatalog.Changed -= OnTasksChanged;
+    }
+}

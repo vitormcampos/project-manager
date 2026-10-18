@@ -1,0 +1,244 @@
+@page "/tasks"
+@implements IDisposable
+@using System.Globalization
+@inject IDialogService DialogService
+
+<PageTitle>Minhas tarefas | ProjectHub</PageTitle>
+
+<MudStack Spacing="5" Class="tasks-page">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="tasks-heading">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.overline">WORKSPACE / MINHAS TAREFAS</MudText>
+            <MudText Typo="Typo.h4">Minhas tarefas</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default">Tudo o que precisa da sua atenção, em um só lugar.</MudText>
+        </MudStack>
+        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary">@TaskCatalog.All.Count(task => !task.IsCompleted) pendentes</MudChip>
+    </MudStack>
+
+    <MudPaper Class="pa-4" Elevation="1">
+        <form @onsubmit="AddTask" @onsubmit:preventDefault="true">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="task-create">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Color="Color.Primary" />
+                <MudTextField @bind-Value="_newTaskTitle" Placeholder="Adicionar uma tarefa" Variant="Variant.Text"
+                              Margin="Margin.Dense" Class="flex-grow-1" Immediate="true" />
+                <MudSelect T="string" @bind-Value="_newTaskProject" Variant="Variant.Outlined" Margin="Margin.Dense"
+                           Label="Projeto" Class="task-project-select">
+                    @foreach (var project in ProjectCatalog.All)
+                    {
+                        <MudSelectItem T="string" Value="@project.Name">@project.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudMenu Icon="@Icons.Material.Filled.Label" Color="@(_newTaskTags.Length > 0 ? Color.Primary : Color.Default)"
+                         Dense="true" Modal="false" AriaLabel="Adicionar tags">
+                    <MudPaper Class="pa-4 task-tags-popover">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Tags</MudText>
+                        <MudTextField @bind-Value="_newTaskTags" Placeholder="Separe as tags por vírgula"
+                                      Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" />
+                    </MudPaper>
+                </MudMenu>
+                <div class="task-date-picker">
+                    <MudIconButton Icon="@Icons.Material.Filled.CalendarMonth"
+                                   Color="@(_newDueDate is null ? Color.Default : Color.Primary)"
+                                   Size="Size.Medium" OnClick="OpenDatePicker"
+                                   aria-label="Selecionar prazo" title="@(_newDueDate is { } dueDate ? DueLabel(dueDate) : "Definir prazo")" />
+                    <MudDatePicker @ref="_datePicker" @bind-Date="_newDueDate" @bind-Date:after="DatePickerChanged"
+                                   Culture="@PortugueseCulture" PickerVariant="PickerVariant.Inline" DateFormat="dd/MM/yyyy"
+                                   Adornment="Adornment.None" Class="task-date-picker-anchor" />
+                </div>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@string.IsNullOrWhiteSpace(_newTaskTitle)">
+                    Adicionar
+                </MudButton>
+            </MudStack>
+        </form>
+    </MudPaper>
+
+    <MudStack Row="true" Spacing="1" Class="task-filters">
+        @foreach (var filter in Filters)
+        {
+            <MudButton Variant="@(_selectedFilter == filter.Key ? Variant.Filled : Variant.Text)"
+                       Color="@(_selectedFilter == filter.Key ? Color.Primary : Color.Default)"
+                       OnClick="@(() => _selectedFilter = filter.Key)">
+                @filter.Label
+                <MudText Typo="Typo.caption" Class="ml-1">@FilterCount(filter.Key)</MudText>
+            </MudButton>
+        }
+    </MudStack>
+
+    <MudPaper Elevation="1" Class="task-list">
+        @if (!VisibleTasks.Any())
+        {
+            <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="pa-8">
+                <MudIcon Icon="@Icons.Material.Filled.TaskAlt" Size="Size.Large" Color="Color.Success" />
+                <MudText Typo="Typo.h6">Tudo em dia</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Default">Nenhuma tarefa nesta lista.</MudText>
+            </MudStack>
+        }
+        else
+        {
+            @foreach (var group in VisibleTasks.GroupBy(GroupLabel))
+            {
+                <MudText Typo="Typo.overline" Class="task-group-label">@group.Key</MudText>
+                @foreach (var task in group)
+                {
+                    <div class="task-row">
+                        <MudIconButton Icon="@(task.IsCompleted ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.RadioButtonUnchecked)"
+                                       Color="@(task.IsCompleted ? Color.Success : PriorityColor(task.Priority))"
+                                       Size="Size.Small" OnClick="@(() => TaskCatalog.Toggle(task.Id))"
+                                       aria-label="@(task.IsCompleted ? "Reabrir tarefa" : "Concluir tarefa")" />
+                        <button type="button" class="task-row-open" aria-label="Abrir tarefa: @task.Title"
+                                @onclick="@(() => OpenTaskDialog(task))">
+                            <MudStack Spacing="0" Class="task-title-block">
+                                <MudText Typo="Typo.body1" Class="@(task.IsCompleted ? "task-completed" : "")">@task.Title</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Default">
+                                    @task.Project <span class="task-dot">·</span> @DueLabel(task.DueDate)
+                                </MudText>
+                                @if (task.Tags.Count > 0)
+                                {
+                                    <MudStack Row="true" Spacing="1" Class="task-tags">
+                                        @foreach (var tag in task.Tags)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@tag</MudChip>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudStack>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="@PriorityColor(task.Priority)">
+                                @PriorityLabel(task.Priority)
+                            </MudChip>
+                        </button>
+                    </div>
+                }
+            }
+        }
+    </MudPaper>
+</MudStack>
+
+@code {
+    private string _newTaskTitle = "";
+    private string _newTaskTags = "";
+    private DateTime? _newDueDate;
+    private MudDatePicker? _datePicker;
+    private string _newTaskProject = ProjectCatalog.All.First().Name;
+    private string _selectedFilter = "today";
+    private static readonly string[] Weekdays =
+        ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+    private static readonly string[] Months =
+        ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+    private static readonly CultureInfo PortugueseCulture = CultureInfo.GetCultureInfo("pt-BR");
+
+    private static readonly (string Key, string Label)[] Filters =
+    [
+        ("today", "Hoje"),
+        ("upcoming", "Próximas"),
+        ("all", "Todas"),
+        ("completed", "Concluídas"),
+    ];
+
+    private IEnumerable<TaskItem> VisibleTasks => _selectedFilter switch
+    {
+        "today" => TaskCatalog.All.Where(task => !task.IsCompleted && task.DueDate is { } dueDate && dueDate.Date <= DateTime.Today),
+        "upcoming" => TaskCatalog.All.Where(task => !task.IsCompleted && task.DueDate is { } dueDate && dueDate.Date > DateTime.Today),
+        "completed" => TaskCatalog.All.Where(task => task.IsCompleted),
+        _ => TaskCatalog.All,
+    };
+
+    protected override void OnInitialized() => TaskCatalog.Changed += OnTasksChanged;
+
+    private void OnTasksChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private int FilterCount(string filter) => filter switch
+    {
+        "today" => TaskCatalog.All.Count(task => !task.IsCompleted && task.DueDate is { } dueDate && dueDate.Date <= DateTime.Today),
+        "upcoming" => TaskCatalog.All.Count(task => !task.IsCompleted && task.DueDate is { } dueDate && dueDate.Date > DateTime.Today),
+        "completed" => TaskCatalog.All.Count(task => task.IsCompleted),
+        _ => TaskCatalog.All.Count,
+    };
+
+    private void AddTask()
+    {
+        var title = _newTaskTitle.Trim();
+        if (title.Length == 0)
+            return;
+
+        var tags = _newTaskTags
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(tag => tag.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        TaskCatalog.Add(title, _newTaskProject, _newDueDate, tags);
+        _newTaskTitle = "";
+        _newTaskTags = "";
+        _newDueDate = null;
+        _selectedFilter = "today";
+    }
+    private async Task OpenTaskDialog(TaskItem task)
+    {
+        var parameters = new DialogParameters
+        {
+            [nameof(TaskDetailsDialog.Task)] = task,
+        };
+        await DialogService.ShowAsync<TaskDetailsDialog>(
+            "Detalhes da tarefa",
+            parameters,
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Large,
+                FullWidth = true,
+                BackdropClick = false,
+            });
+    }
+    private async Task OpenDatePicker()
+    {
+        if (_datePicker is not null)
+            await _datePicker.OpenAsync();
+    }
+    private async Task DatePickerChanged()
+    {
+        if (_datePicker is not null)
+            await _datePicker.CloseAsync(true);
+    }
+
+    private static string GroupLabel(TaskItem task)
+    {
+        if (task.IsCompleted)
+            return "CONCLUÍDAS";
+        if (task.DueDate is not { } dueDate)
+            return "SEM PRAZO";
+        if (dueDate.Date < DateTime.Today)
+            return "ATRASADAS";
+        if (dueDate.Date == DateTime.Today)
+            return "HOJE";
+        return $"{Weekdays[(int)dueDate.DayOfWeek]}, {dueDate.Day} de {Months[dueDate.Month - 1]}";
+    }
+
+    private static string DueLabel(DateTime? date)
+    {
+        if (date is not { } dueDate)
+            return "Sem prazo";
+        if (dueDate.Date == DateTime.Today)
+            return "Hoje";
+        if (dueDate.Date == DateTime.Today.AddDays(1))
+            return "Amanhã";
+        if (dueDate.Date < DateTime.Today)
+            return "Atrasada";
+        return $"{dueDate.Day} de {Months[dueDate.Month - 1]}";
+    }
+
+    private static string PriorityLabel(int priority) => priority switch
+    {
+        1 => "Urgente",
+        2 => "Alta",
+        3 => "Média",
+        _ => "Baixa",
+    };
+
+    private static Color PriorityColor(int priority) => priority switch
+    {
+        1 => Color.Error,
+        2 => Color.Warning,
+        3 => Color.Info,
+        _ => Color.Default,
+    };
+
+    public void Dispose() => TaskCatalog.Changed -= OnTasksChanged;
+}

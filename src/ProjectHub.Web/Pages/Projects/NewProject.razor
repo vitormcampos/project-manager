@@ -1,0 +1,154 @@
+@page "/projects/new"
+@using System.Globalization
+@inject NavigationManager Navigation
+
+<PageTitle>Novo projeto | ProjectHub</PageTitle>
+
+<MudStack Spacing="4">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudStack Spacing="0">
+            <MudText Typo="Typo.h4">Novo projeto</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Default">
+                Preencha os dados para adicionar um projeto à equipe.
+            </MudText>
+        </MudStack>
+        <MudButton Href="/projects" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ArrowBack">
+            Voltar para projetos
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Class="pa-6" Elevation="1">
+        <MudForm @ref="_form">
+            <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="project-image-upload">
+                <MudFileUpload T="IBrowserFile" OnFilesChanged="OnImageSelected" Accept="image/*"
+                               MaxFileSize="@MaxImageSize" Hidden="true">
+                    <ActivatorContent>
+                        <MudPaper Outlined="true" Class="project-image-dropzone">
+                            @if (!string.IsNullOrWhiteSpace(_imageDataUrl))
+                            {
+                                <img src="@_imageDataUrl" alt="Prévia da imagem do projeto" class="project-image-preview" />
+                                <MudText Typo="Typo.body2">Clique para trocar a imagem</MudText>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.subtitle1">Adicionar imagem do projeto</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Default">Clique para escolher uma imagem (máximo 5 MB)</MudText>
+                            }
+                        </MudPaper>
+                    </ActivatorContent>
+                </MudFileUpload>
+                @if (!string.IsNullOrWhiteSpace(_imageDataUrl))
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="RemoveImage">
+                        Remover imagem
+                    </MudButton>
+                }
+                @if (!string.IsNullOrWhiteSpace(_imageError))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@_imageError</MudAlert>
+                }
+            </MudStack>
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="8">
+                    <MudTextField @bind-Value="_name" Label="Nome do projeto" Variant="Variant.Outlined" Required="true"
+                                  RequiredError="Informe o nome do projeto." MaxLength="100" Counter="100" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudDatePicker @bind-Date="_dueDate" Label="Prazo (opcional)" Variant="Variant.Outlined"
+                                   DateFormat="dd/MM/yyyy" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_description" Label="Descrição" Variant="Variant.Outlined" Lines="3"
+                                  MaxLength="500" Counter="500" />
+                </MudItem>
+            </MudGrid>
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-4">
+                <MudButton Href="/projects" Variant="Variant.Text">Cancelar</MudButton>
+                <MudButton OnClick="CreateProject" Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Save">
+                    Criar projeto
+                </MudButton>
+            </MudStack>
+        </MudForm>
+    </MudPaper>
+</MudStack>
+
+@code {
+    private MudForm? _form;
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+    private DateTime? _dueDate;
+    private const long MaxImageSize = 5 * 1024 * 1024;
+    private string? _imageDataUrl;
+    private string? _imageError;
+
+    private async Task OnImageSelected(InputFileChangeEventArgs args)
+    {
+        var file = args.File;
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            _imageError = "Selecione um arquivo de imagem.";
+            _imageDataUrl = null;
+            return;
+        }
+
+        if (file.Size > MaxImageSize)
+        {
+            _imageError = "A imagem deve ter no máximo 5 MB.";
+            _imageDataUrl = null;
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(MaxImageSize);
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            _imageDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer.ToArray())}";
+            _imageError = null;
+        }
+        catch (IOException)
+        {
+            _imageDataUrl = null;
+            _imageError = "Não foi possível carregar a imagem. Tente novamente.";
+        }
+    }
+
+    private void RemoveImage()
+    {
+        _imageDataUrl = null;
+        _imageError = null;
+    }
+
+    private async Task CreateProject()
+    {
+        if (_form is null)
+        {
+            return;
+        }
+
+        await _form.Validate();
+        if (!_form.IsValid || string.IsNullOrWhiteSpace(_name))
+        {
+            return;
+        }
+
+        var due = _dueDate is { } date
+            ? date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
+            : "Sem prazo";
+
+        ProjectCatalog.Add(new ProjectItem(
+            _name.Trim(),
+            _description.Trim(),
+            0,
+            "Planejamento",
+            due,
+            Icons.Material.Filled.FolderOpen,
+            Color.Primary,
+            _imageDataUrl));
+
+        Navigation.NavigateTo("/projects");
+    }
+}

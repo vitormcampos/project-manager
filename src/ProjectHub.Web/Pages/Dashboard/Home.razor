@@ -1,0 +1,86 @@
+@page "/"
+
+<PageTitle>Visão geral | ProjectHub</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="4" Class="mb-6">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.overline">SEGUNDA-FEIRA, 24 DE JUNHO DE 2025</MudText>
+        <MudText Typo="Typo.h4">Bom dia, Vitor ✦</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Default">
+            Aqui está o resumo do que está acontecendo com sua equipe.
+        </MudText>
+    </MudStack>
+    <MudButton Href="/projects/new" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">
+        Novo projeto
+    </MudButton>
+</MudStack>
+
+<MudGrid Spacing="4">
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudStack Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Projetos ativos</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.FolderOpen" Color="Color.Primary" />
+                </MudStack>
+                <MudText Typo="Typo.h4">@ProjectCatalog.All.Count</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Success">↗ 2 em relação ao mês passado</MudText>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudStack Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Tarefas em andamento</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.PendingActions" Color="Color.Primary" />
+                </MudStack>
+                <MudText Typo="Typo.h4">24</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Success">↗ 12% em relação à semana passada</MudText>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudStack Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Tarefas concluídas</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.TaskAlt" Color="Color.Primary" />
+                </MudStack>
+                <MudText Typo="Typo.h4">37</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Success">↗ 8% em relação à semana passada</MudText>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Class="pa-4" Elevation="1">
+            <MudStack Spacing="2">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Default">Horas registradas</MudText>
+                    <MudIcon Icon="@Icons.Material.Filled.Schedule" Color="Color.Primary" />
+                </MudStack>
+                <MudText Typo="Typo.h4">128 h</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Default">Esta semana pela equipe</MudText>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="my-6">
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.h6">Projetos recentes</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Default">Acompanhe o progresso dos seus projetos</MudText>
+    </MudStack>
+    <MudButton Href="/projects" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward">
+        Ver todos
+    </MudButton>
+</MudStack>
+
+<MudGrid Spacing="4">
+    @foreach (var project in ProjectCatalog.All)
+    {
+        <MudItem xs="12" sm="6" md="4">
+            <ProjectCard Project="project" />
+        </MudItem>
+    }
+</MudGrid>
