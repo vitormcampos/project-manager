@@ -1,0 +1,5 @@
+@ProjectHub.Api_HostAddress = http://localhost:5080
+
+### API health check
+GET {{ProjectHub.Api_HostAddress}}/health
+Accept: application/json
