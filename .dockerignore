@@ -1,0 +1,12 @@
+.git
+.github
+.vscode
+.specs
+.agents
+**/bin
+**/obj
+**/TestResults
+.env
+.env.*
+!.env.example
+**/Properties/launchSettings.json
