@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "ProjectHub.slnx",
+  "dotnet-test-explorer.testProjectPath": "tests/**/*Tests.csproj"
+}
