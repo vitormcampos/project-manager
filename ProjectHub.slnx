@@ -3,7 +3,13 @@
     <Project Path="src/ProjectHub.Api/ProjectHub.Api.csproj" />
     <Project Path="src/ProjectHub.Application/ProjectHub.Application.csproj" />
     <Project Path="src/ProjectHub.Data/ProjectHub.Data.csproj" />
+    <Project Path="src/ProjectHub.Contracts/ProjectHub.Contracts.csproj" />
     <Project Path="src/ProjectHub.Domain/ProjectHub.Domain.csproj" />
     <Project Path="src/ProjectHub.Web/ProjectHub.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ProjectHub.Application.Tests/ProjectHub.Application.Tests.csproj" />
+    <Project Path="tests/ProjectHub.Data.Integration.Tests/ProjectHub.Data.Integration.Tests.csproj" />
+    <Project Path="tests/ProjectHub.Domain.Tests/ProjectHub.Domain.Tests.csproj" />
   </Folder>
 </Solution>

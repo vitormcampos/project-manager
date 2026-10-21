@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -17,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProjectHub.Application\ProjectHub.Application.csproj" />
+    <ProjectReference Include="..\ProjectHub.Contracts\ProjectHub.Contracts.csproj" />
     <ProjectReference Include="..\ProjectHub.Data\ProjectHub.Data.csproj" />
   </ItemGroup>
 

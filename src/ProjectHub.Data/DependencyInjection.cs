@@ -25,6 +25,9 @@ public static class DependencyInjection
         services.AddDbContext<ProjectHubDbContext>(options =>
             options.UseNpgsql(connectionString, npgsql => npgsql.UseVector())
         );
+        services.AddScoped<DbContext>(provider =>
+            provider.GetRequiredService<ProjectHubDbContext>()
+        );
 
         return services;
     }

@@ -11,7 +11,7 @@ status: rascunho
 # 01 - Configuração da API com EF Core, PostgreSQL e pgvector
 
 ## Objetivo Técnico
-Estabelecer as camadas `Application` e `Data` e configurar a persistência da solução com Entity Framework Core, PostgreSQL, Npgsql e pgvector. `Application` conterá casos de uso e abstrações de persistência; `Data` conterá o `DbContext`, mapeamentos e migrations. A API fará a composição das dependências. A configuração deve ser segura, inicializável por ambiente e preparada para evoluir com migrations.
+Estabelecer as camadas `Application` e `Data` e configurar a persistência da solução com Entity Framework Core, PostgreSQL, Npgsql e pgvector. `Application` conterá casos de uso e poderá usar EF Core diretamente via `DbContext`, sem Repository; `Data` conterá o contexto concreto, mapeamentos, provider e migrations. A API fará a composição das dependências. A configuração deve ser segura, inicializável por ambiente e preparada para evoluir com migrations.
 
 ## Visão do Usuário
 Esta configuração é infraestrutura interna e não adiciona, por si só, novas telas ou endpoints de negócio. Ela permite que as funcionalidades da API persistam e consultem dados no PostgreSQL, incluindo futuramente vetores para busca semântica.
@@ -47,8 +47,8 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ## O Que Deve Ser Feito
 - [ ] Criar os projetos `ProjectHub.Application` e `ProjectHub.Data` na solução.
-- [ ] Definir dependências direcionadas: `Application` pode depender de `Domain`; `Data` implementa as abstrações de persistência definidas em `Application` e depende de `Domain`; `Api` referencia `Application` e `Data` para composição. `Application` não deve depender de `Data` nem de EF Core.
-- [ ] Manter casos de uso e interfaces/abstrações de persistência em `Application`, sem expor tipos do EF Core nos contratos da camada.
+- [ ] Definir dependências direcionadas: `Application → Domain + EF Core`; `Data → Application + Domain + provider PostgreSQL`; `Api → Application + Data`. `Application` usa `DbContext` diretamente e não depende de `Data`, Npgsql ou de detalhes específicos do provider.
+- [ ] Manter casos de uso em `Application`; não criar Repository. Mapeamentos, provider e migrations continuam em `Data`.
 - [ ] Adicionar ao projeto `Data` os pacotes compatíveis de EF Core, `Npgsql.EntityFrameworkCore.PostgreSQL` e integração pgvector (`Pgvector.EntityFrameworkCore`), alinhando as versões ao .NET 10 e entre si.
 - [ ] Criar o `DbContext` e os mapeamentos de persistência em `Data`, sem colocar regras de persistência dentro das entidades de domínio.
 - [ ] Registrar `DbContext`, implementações de persistência e casos de uso no container de DI a partir da API, usando `ConnectionStrings:DefaultConnection`.
@@ -62,6 +62,6 @@ CREATE EXTENSION IF NOT EXISTS vector;
 - [ ] Não versionar credenciais ou connection strings com senhas reais.
 - [ ] Não executar `EnsureCreated`/`EnsureDeleted` automaticamente no startup; usar migrations para evolução do schema.
 - [ ] Não criar tabelas, índices vetoriais ou lógica de busca semântica nesta especificação.
-- [ ] Não adicionar dependência do EF Core ou Npgsql aos projetos `Domain` ou `Application`.
+- [ ] Não adicionar dependência do EF Core ou Npgsql ao `Domain`, nem Npgsql/detalhes do PostgreSQL à `Application`; o uso de EF Core em `Application` é permitido e previsto pela spec de autenticação/Accounts/Users.
 - [ ] Não colocar `DbContext` ou migrations nos projetos `Api` ou `Application`.
 - [ ] Não aplicar migrations automaticamente em produção sem uma decisão explícita de implantação.

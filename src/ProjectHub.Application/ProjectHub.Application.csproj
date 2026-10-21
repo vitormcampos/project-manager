@@ -2,6 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProjectHub.Domain\ProjectHub.Domain.csproj" />
+    <ProjectReference Include="..\ProjectHub.Contracts\ProjectHub.Contracts.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.13" />
   </ItemGroup>
 
   <PropertyGroup>
